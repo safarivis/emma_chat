@@ -31,7 +31,7 @@ export default function Chat() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.details || 'Failed to get response');
+        throw new Error(errorData.error || errorData.details || 'Failed to get response');
       }
 
       const data = await response.json();
@@ -43,7 +43,7 @@ export default function Chat() {
       console.error('Error:', error);
       const errorMessage: Message = { 
         sender: 'bot', 
-        text: `Error: ${error.message}` 
+        text: `Error: ${error instanceof Error ? error.message : 'An unexpected error occurred'}` 
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
@@ -89,7 +89,7 @@ export default function Chat() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
-            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             disabled={isLoading}
           />
           <button
