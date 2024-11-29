@@ -6,9 +6,6 @@ export async function POST(request: Request) {
     console.log('Received message:', message);
     console.log('API Key:', process.env.HUGGINGFACE_API_KEY ? 'Present' : 'Missing');
 
-    // Format the chat message with proper system prompt and user message
-    const formattedMessage = `<|system|>You are Emma, a helpful and friendly AI assistant. Provide clear, accurate, and natural responses.</s>
-
     // Make a request to the Hugging Face Inference API
     const response = await fetch('https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-alpha', {
       method: 'POST',
@@ -17,7 +14,7 @@ export async function POST(request: Request) {
         'Authorization': `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
       },
       body: JSON.stringify({
-        inputs: formattedMessage + message,
+        inputs: message,
         parameters: {
           max_new_tokens: 1000,
           temperature: 0.7,
@@ -33,7 +30,9 @@ export async function POST(request: Request) {
     console.log('API Response:', responseText);
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}, response: ${responseText}`);
+      const errorMessage = `HTTP error! status: ${response.status}, response: ${responseText}`;
+      console.error(errorMessage);
+      return NextResponse.json({ error: errorMessage }, { status: response.status });
     }
 
     let data;
@@ -52,7 +51,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Error in chat API:', error);
     return NextResponse.json(
-      { error: 'Failed to process your request', details: error.message },
+      { error: 'Failed to process your request', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
